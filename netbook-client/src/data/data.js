@@ -11,17 +11,17 @@ const range = len => {
 
 const newAssets = () => {
   return {
-    name: "Chequing",
+    name: "Investment 1",
     interest: 0,
     amount: 2000,
-  };
+  }
 };
 
 export function makeData(len=2) {
   return range(len).map(d => {
     return {
-      ...newAssets(),
-      children: range(2).map(newAssets)
+      ...newAssets()
+      //children: range(len).map(newAssets)
     };
   });
 }
