@@ -17,6 +17,14 @@ const newAssets = () => {
   }
 };
 
+export function stringifyFormData(fd) {
+  const data = {};
+	for (let key of fd.keys()) {
+  	data[key] = fd.get(key);
+  }
+  return JSON.stringify(data, null, 2);
+}
+
 export function makeData(len=2) {
   return range(len).map(d => {
     return {

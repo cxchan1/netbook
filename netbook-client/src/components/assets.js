@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { makeData } from "../data/data";
+import { makeData, stringifyFormData } from "../data/data";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 import { Fab, Typography, TextField, Toolbar, Divider, Button, IconButton, MenuItem, Icon} from '@material-ui/core';
@@ -38,6 +38,7 @@ class Assets extends React.Component {
     };
     this.renderEditable = this.renderEditable.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
+    this.handleSend = this.handleSend.bind(this);
   }
   handleAdd() {
     let rows = this.state.assets;
@@ -48,6 +49,21 @@ class Assets extends React.Component {
 
   handleSend() {
     console.log(this.state.assets);
+    const formData = new FormData();
+
+    formData.append('assets', JSON.stringify([1,2,3]));
+    formData.append('liabilities', JSON.stringify([1,2,3]));
+
+    console.log(formData);
+    console.log(stringifyFormData(formData))
+
+    // fetch('localhost:3000/api', {
+    //   method: 'POST',
+    //   body: formData
+    // })
+    // .then(response => response.json())
+    // .catch(error => console.error('Error:', error))
+    // .then(response => console.log('Success:', JSON.stringify(response)));
   }
 
   renderEditable(cellInfo) {
