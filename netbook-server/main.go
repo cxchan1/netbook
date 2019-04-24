@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
+	"strings"
+	"sync"
 
 	"github.com/gorilla/mux"
 )
@@ -28,9 +31,17 @@ type CurrencyRate struct {
 	Rates           map[string]float64 `json:"rates"`
 }
 
-type FormData struct {
+type ConvertCurrencyResponse struct {
 	Assets      []float64 `json:"assets"`
 	Liabilities []float64 `json:"liabilities"`
+	Monthly     []float64 `json:"monthly"`
+}
+
+type Data struct {
+	Assets      []float64 `json:"assets"`
+	Liabilities []float64 `json:"liabilities"`
+	Monthly     []float64 `json:"monthly"`
+	From        string    `json:"from"`
 }
 
 func calculateAssets(assets []float64) float64 {
@@ -71,27 +82,77 @@ func getExchangeRate(from, to string) (float64, error) {
 }
 
 func convertCurrencyHandler(w http.ResponseWriter, r *http.Request) {
-	//from, to = _, _
-	//fmt.Println(getExchangeRate(from, to))
+	var req Data
+
+	b, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(b, &req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var (
+		wg              sync.WaitGroup
+		currencies      = strings.Split(req.From, "/")
+		from, to        = currencies[0], currencies[1]
+		convAssets      = make([]float64, 0)
+		convLiabilities = make([]float64, 0)
+		convMonthly     = make([]float64, 0)
+	)
+	rate, err := getExchangeRate(from, to)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		for _, amount := range req.Assets {
+			convAssets = append(convAssets, math.Round((amount*rate)*100)/100)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for _, amount := range req.Liabilities {
+			convLiabilities = append(convLiabilities, math.Round((amount*rate)*100)/100)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for _, amount := range req.Monthly {
+			convMonthly = append(convMonthly, math.Round((amount*rate)*100)/100)
+		}
+	}()
+	wg.Wait()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	rsp := ConvertCurrencyResponse{
+		Assets:      convAssets,
+		Liabilities: convLiabilities,
+		Monthly:     convMonthly,
+	}
+
+	if err := json.NewEncoder(w).Encode(rsp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func netWorthHandler(w http.ResponseWriter, r *http.Request) {
-	//var a, l []interface{}
-	var x FormData
-
-	// json.Unmarshal([]byte(r.FormValue("assets")), &a)
-	// json.Unmarshal([]byte(r.FormValue("liabilities")), &l)
+	var req Data
 
 	b, _ := ioutil.ReadAll(r.Body)
-	fmt.Println(string(b))
-	err := json.Unmarshal(b, &x)
+	err := json.Unmarshal(b, &req)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(x)
 
-	assets := calculateAssets(x.Assets)
-	liabilities := calculateLiabilities(x.Liabilities)
+	assets := calculateAssets(req.Assets)
+	liabilities := calculateLiabilities(req.Liabilities)
 
 	nw := &NetWorth{
 		TotalAssets:      assets,
@@ -102,10 +163,9 @@ func netWorthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(nw); err !=    nil {
-    panic(err)
+	if err := json.NewEncoder(w).Encode(nw); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }
 
 func handleRequests() {
