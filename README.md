@@ -15,7 +15,7 @@ $ git clone git@github.com:cxchan1/netbook.git
 ```
 Install node modules, [Yarn](https://yarnpkg.com/en/) is highly recommended.
 ```
-$ cd netBook/netbook-client/ && yarn install
+$ cd netbook/netbook-client/ && yarn install
 ```
 Run netbook front end:
 ```
@@ -23,8 +23,8 @@ $ yarn start
 ```
 Run netbook server side, [Golang](https://golang.org/doc/install):
 ```
-$ cd netBook/netbook-server/ && go run main.go
+$ cd netbook/netbook-server/ && go run main.go
 ```
 ## Bugs
 - Make sure you start the front end first before you run the server side. Otherwise, front-end and back-end won't talk to each other because of Node.js (localhost only)
-- Currently, there is no database on the server side yet.
+- (WARNING) Currently, there is no database on the server side yet so right now there is no way to save your data on the application.
