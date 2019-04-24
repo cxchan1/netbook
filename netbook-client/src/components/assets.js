@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { makeData, stringifyFormData } from "../data/data";
+import { makeData, stringifyFormData, convertArray } from "../data/data";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 import { Fab, Typography, TextField, Toolbar, Divider, Button, IconButton, MenuItem, Icon} from '@material-ui/core';
@@ -27,10 +27,7 @@ const currencies = [
     },
 ];
 
-//const API = 'https://hn.algolia.com/api/v1/search?query=';
-//const API = 'https://jsonplaceholder.typicode.com/posts'
 const API = 'http://localhost:3000/api'
-const DEFAULT_QUERY = 'redux';
 
 class Assets extends React.Component {
   constructor() {
@@ -38,6 +35,7 @@ class Assets extends React.Component {
     this.state = {
       assets: makeData(),
       tassets: 0,
+      tliabilities: 0,
       currency: 'USD'
     };
     this.renderEditable = this.renderEditable.bind(this);
@@ -52,36 +50,29 @@ class Assets extends React.Component {
   }
 
   handleSend() {
-    console.log(this.state.assets);
-    const formData = new FormData();
-
-    formData.append('assets', JSON.stringify([1,2,3]));
-    formData.append('liabilities', JSON.stringify([1,2,3]));
-
-    console.log(formData);
-    console.log(stringifyFormData(formData))
-
-    fetch(API, {
+    return fetch(API, {
       method: 'POST',
       headers: {
         'Access-Control-Allow-Origin' : '*',
         "Content-type": "application/json"
       },
       body: JSON.stringify({
-      assets: [1,2,3],
+      assets: convertArray(this.state.assets),
       liabilities: [1,2,3,4]
     }),
   }).then(response => {
         if (response.ok) {
-          console.log("Hello");
           return response.json();
         } else {
           throw new Error('Something went wrong ...');
         }
       })
-      .then(response => console.log('Success:', JSON.stringify(response)))
-      .catch(error => console.error('Error:', error));
+      .then(response => this.setState({ tassets: response.totalAssets}))
+      .catch(error => console.error(error));
 
+    //let totalAssets =JSON.parse(result);
+    //console.log(result);
+    //this.setState({tassets: totalAssets.totalAssets})
   //   fetch(API, {
   //     method: 'POST',
   //     body: JSON.stringify({
