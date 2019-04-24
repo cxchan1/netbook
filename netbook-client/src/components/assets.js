@@ -27,6 +27,10 @@ const currencies = [
     },
 ];
 
+//const API = 'https://hn.algolia.com/api/v1/search?query=';
+//const API = 'https://jsonplaceholder.typicode.com/posts'
+const API = 'http://localhost:3000/api'
+const DEFAULT_QUERY = 'redux';
 
 class Assets extends React.Component {
   constructor() {
@@ -57,13 +61,40 @@ class Assets extends React.Component {
     console.log(formData);
     console.log(stringifyFormData(formData))
 
-    // fetch('localhost:3000/api', {
-    //   method: 'POST',
-    //   body: formData
-    // })
-    // .then(response => response.json())
-    // .catch(error => console.error('Error:', error))
-    // .then(response => console.log('Success:', JSON.stringify(response)));
+    fetch(API, {
+      method: 'POST',
+      headers: {
+        'Access-Control-Allow-Origin' : '*',
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify({
+      assets: [1,2,3],
+      liabilities: [1,2,3,4]
+    }),
+  }).then(response => {
+        if (response.ok) {
+          console.log("Hello");
+          return response.json();
+        } else {
+          throw new Error('Something went wrong ...');
+        }
+      })
+      .then(response => console.log('Success:', JSON.stringify(response)))
+      .catch(error => console.error('Error:', error));
+
+  //   fetch(API, {
+  //     method: 'POST',
+  //     body: JSON.stringify({
+  //     assets: [1,2,3],
+  //     liabilities: []
+  //   }),
+  //   // headers: {
+  //   //   "Content-type": "application/json; charset=UTF-8"
+  //   // }
+  // })
+  //   .then(response => console.log('Yes:', response.json()))
+  //   .catch(error => console.error('Error:', error))
+  //   .then(response => console.log('Success:', JSON.stringify(response)));
   }
 
   renderEditable(cellInfo) {
