@@ -25,6 +25,6 @@ Run netbook server side, [Golang](https://golang.org/doc/install):
 ```
 $ cd netbook/netbook-server/ && go run main.go
 ```
-## Bugs
+## Hints:
 - Make sure you start the front end first before you run the server side. Otherwise, front-end and back-end won't talk to each other because of Node.js (localhost only)
 - (WARNING) Currently, there is no database on the server side yet so right now there is no way to save your data on the application.
